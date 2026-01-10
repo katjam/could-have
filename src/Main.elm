@@ -1,16 +1,18 @@
-module Main exposing (Flags, Model, Msg, main)
+module Main exposing (main)
 
-import Base exposing (Base)
 import Browser
-import Html exposing (Html, div, text)
-import Html.Events
+import Fact.Data
+import Fact.View
+import Html
+import Msg
+import TestData
 
 
 type alias Flags =
     ()
 
 
-main : Program Flags Model Msg
+main : Program Flags Model Msg.Msg
 main =
     Browser.document
         { init = init
@@ -21,50 +23,45 @@ main =
 
 
 type alias Model =
-    { base : Base
-    }
+    { currentFact : Maybe Fact.Data.Fact }
 
 
-init : () -> ( Model, Cmd Msg )
+init : () -> ( Model, Cmd Msg.Msg )
 init _ =
-    ( { base =
-            Base.init
-      }
+    ( { currentFact = Nothing }
     , Cmd.none
     )
 
 
-type Msg
-    = DoAction
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg.Msg -> Model -> ( Model, Cmd Msg.Msg )
 update msg model =
     case msg of
-        DoAction ->
-            ( { model | base = { value = model.base.value + 1 } }
+        Msg.ShowThings fact ->
+            ( { model | currentFact = Just fact }
             , Cmd.none
             )
 
 
-subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions : Model -> Sub Msg.Msg
+subscriptions model =
     Sub.none
 
 
-viewDocument : Model -> Browser.Document Msg
+viewDocument : Model -> Browser.Document Msg.Msg
 viewDocument model =
-    { title = "Kelm App", body = [ view model ] }
+    { title = "Could have", body = [ view model ] }
 
 
-view : Model -> Html Msg
+view : Model -> Html.Html Msg.Msg
 view model =
-    div
+    Html.div
         []
-        [ text "Base template "
-        , Html.button
-            [ Html.Events.onClick DoAction
-            ]
-            [ text "Do action!" ]
-        , Base.view model.base
+        [ Html.text "Could have"
+        , Fact.View.viewFacts TestData.facts
+        , case model.currentFact of
+            Just aFact ->
+                Fact.View.viewThingsCouldHave aFact
+
+            Nothing ->
+                Html.text ""
         ]
