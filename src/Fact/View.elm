@@ -4,6 +4,7 @@ import Fact.Data
 import Html
 import Html.Events
 import Msg
+import TestData
 
 
 viewFacts : List Fact.Data.Fact -> Html.Html Msg.Msg
@@ -24,5 +25,23 @@ viewFact fact =
 
 
 viewThingsCouldHave : Fact.Data.Fact -> Html.Html Msg.Msg
-viewThingsCouldHave fact =
-    Html.div [] [ Html.text fact.label ]
+viewThingsCouldHave person =
+    Html.div []
+        [ Html.h2 []
+            [ Html.text (person.label ++ " could have: ") ]
+        , Html.ul
+            []
+            (List.map
+                (\thing ->
+                    if Fact.Data.isCoexistant person thing then
+                        Html.li [] [ Html.text thing.label ]
+
+                    else
+                        Html.text ""
+                )
+                (List.filter
+                    (\aFact -> aFact.what == Fact.Data.Thing)
+                    TestData.facts
+                )
+            )
+        ]
