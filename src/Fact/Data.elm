@@ -1,4 +1,6 @@
-module Fact.Data exposing (Fact, FactType(..), isCoexistant)
+module Fact.Data exposing (Fact, FactType(..), decoder, isCoexistant)
+
+import Csv.Decode
 
 
 type FactType
@@ -11,6 +13,36 @@ type alias Fact =
     , when : ( Int, Maybe Int )
     , label : String
     }
+
+
+decoder : Csv.Decode.Decoder Fact
+decoder =
+    Csv.Decode.into Fact
+        |> Csv.Decode.pipeline
+            (Csv.Decode.field "type" Csv.Decode.string
+                |> Csv.Decode.andThen factTypeFromString
+            )
+        |> Csv.Decode.pipeline
+            (Csv.Decode.map2 Tuple.pair
+                (Csv.Decode.field "start" Csv.Decode.int)
+                (Csv.Decode.blank (Csv.Decode.field "end" Csv.Decode.int))
+            )
+        --|> Csv.Decode.pipeline (Csv.Decode.succeed ( 0, Just 0 ))
+        |> Csv.Decode.pipeline
+            (Csv.Decode.field "what" Csv.Decode.string)
+
+
+factTypeFromString : String -> Csv.Decode.Decoder FactType
+factTypeFromString typeString =
+    case String.toLower typeString of
+        "person" ->
+            Csv.Decode.succeed Person
+
+        "thing" ->
+            Csv.Decode.succeed Thing
+
+        _ ->
+            Csv.Decode.fail ("Invalid fact type: " ++ typeString)
 
 
 isCoexistant : Fact -> Fact -> Bool
