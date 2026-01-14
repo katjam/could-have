@@ -25,11 +25,19 @@ decoder =
         |> Csv.Decode.pipeline
             (Csv.Decode.map2 Tuple.pair
                 (Csv.Decode.field "start" Csv.Decode.int)
-                (Csv.Decode.blank (Csv.Decode.field "end" Csv.Decode.int))
+                (maybeEmptyToMaybeInt (Csv.Decode.field "end" Csv.Decode.string))
             )
-        --|> Csv.Decode.pipeline (Csv.Decode.succeed ( 0, Just 0 ))
         |> Csv.Decode.pipeline
             (Csv.Decode.field "what" Csv.Decode.string)
+
+
+maybeEmptyToMaybeInt : Csv.Decode.Decoder String -> Csv.Decode.Decoder (Maybe Int)
+maybeEmptyToMaybeInt maybeEmptyDecoder =
+    Csv.Decode.map
+        (\maybeString ->
+            String.toInt maybeString
+        )
+        maybeEmptyDecoder
 
 
 factTypeFromString : String -> Csv.Decode.Decoder FactType
